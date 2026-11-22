@@ -1,0 +1,30 @@
+{
+  "name": "plutonium-cgapi",
+  "version": "1.0.0",
+  "description": "Plutonium CGAPI — cloud gaming API: accounts, catalog, game sessions and WebRTC signaling",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "private": true,
+  "main": "api/index.ts",
+  "engines": {
+    "bun": ">=1.2.0"
+  },
+  "scripts": {
+    "start": "bun api/index.ts",
+    "dev": "bun --watch api/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/websocket": "^11.3.4",
+    "axios": "^1.20.0",
+    "axios-cookiejar-support": "^7.0.0",
+    "fastify": "^5.12.5",
+    "tough-cookie": "^6.0.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@types/node": "^26.6.3",
+    "@types/ws": "^8.18.2",
+    "typescript": "^7.0.2"
+  }
+}
