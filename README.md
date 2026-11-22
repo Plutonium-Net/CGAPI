@@ -25,7 +25,7 @@ Cloud gaming API for Sorastream — accounts, catalog, game sessions and WebRTC 
 }
 ```
 
-Accounts are pre-warmed in the background (`POOL_SIZE`) and handed out from the pool; the pool request path creates one live if the pool is empty. The pool is persisted to `DATA_DIR/accounts.json` (owner-only permissions, gitignored, mount it as a volume).
+Accounts are pre-warmed in the background (`POOL_SIZE`) and handed out from the pool; the pool request path creates one live if the pool is empty. The pool is persisted best-effort to `os.tmpdir()/plutonium-cgapi/accounts.json` (owner-only permissions); if the filesystem is read-only the pool simply stays in memory.
 
 ### `POST /api/stream`
 
@@ -79,7 +79,7 @@ bun run start
 | `HOST` | `0.0.0.0` | bind address; use `127.0.0.1` behind a reverse proxy |
 | `LOG_LEVEL` | `info` | pino level (JSON logs to stdout) |
 | `CORS_ORIGIN` | `*` | comma separated allowed origins, or `*` |
-| `DATA_DIR` | `./data` | writable directory for the account pool |
+| `DATA_DIR` | ignored | removed: the pool always lives in `os.tmpdir()/plutonium-cgapi` |
 | `POOL_SIZE` | `5` | pre-warmed accounts; `0` disables the pool |
 | `POOL_MAX_AGE_HOURS` | `12` | discard pooled accounts older than this |
 | `REGION_CODE` | `US` | region sent when starting a session |
@@ -109,7 +109,7 @@ Environment:
 NODE_ENV=production
 LOG_LEVEL=info
 CORS_ORIGIN=https://your-frontend.example
-DATA_DIR=/app/data
+
 POOL_SIZE=3
 ```
 

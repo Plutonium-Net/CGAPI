@@ -1,4 +1,5 @@
-import { join, resolve } from "path";
+import { join } from "path";
+import { tmpdir } from "os";
 
 function int(value: string | undefined, fallback: number): number {
   const parsed = Number.parseInt(value ?? "", 10);
@@ -22,7 +23,9 @@ export const config = {
   host: process.env.HOST ?? "0.0.0.0",
   logLevel: process.env.LOG_LEVEL ?? "info",
   corsOrigins,
-  dataDir: resolve(process.env.DATA_DIR ?? join(process.cwd(), "data")),
+  // Always use a writable location: the deploy filesystem (and process.cwd())
+  // may be read-only, and DATA_DIR in the environment is ignored on purpose.
+  dataDir: join(tmpdir(), "plutonium-cgapi"),
   poolSize: Math.max(0, int(process.env.POOL_SIZE, 5)),
   poolMaxAgeMs: Math.max(1, int(process.env.POOL_MAX_AGE_HOURS, 12)) * 60 * 60 * 1000,
   regionCode: process.env.REGION_CODE ?? "US",

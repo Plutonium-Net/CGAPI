@@ -172,6 +172,7 @@ class SorastreamClient {
 class AccountPool {
   private pool: Account[] = [];
   private filling = false;
+  private saveFailed = false;
   private timer: ReturnType<typeof setInterval> | null = null;
 
   constructor(private readonly logger: FastifyInstance["log"]) {}
@@ -226,8 +227,20 @@ class AccountPool {
   }
 
   private async save(): Promise<void> {
-    await mkdir(config.dataDir, { recursive: true });
-    await writeFile(POOL_FILE, JSON.stringify(this.pool, null, 2), { mode: 0o600 });
+    // Persistence is best-effort: an unwritable disk must never fail an account.
+    try {
+      await mkdir(config.dataDir, { recursive: true });
+      await writeFile(POOL_FILE, JSON.stringify(this.pool, null, 2), { mode: 0o600 });
+      if (this.saveFailed) {
+        this.saveFailed = false;
+        this.logger.info("account pool persistence recovered");
+      }
+    } catch (error) {
+      if (!this.saveFailed) {
+        this.saveFailed = true;
+        this.logger.warn({ err: error }, "account pool could not be persisted, keeping it in memory");
+      }
+    }
   }
 
   stop(): void {

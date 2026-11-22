@@ -224,11 +224,13 @@ export const streamRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
       });
 
       const controller = new AbortController();
+      // Listen on the response, not the request: `request.raw` emits "close" as
+      // soon as the body is consumed, which would abort every SSE immediately.
       const onClose = () => controller.abort();
-      request.raw.on("close", onClose);
+      reply.raw.on("close", onClose);
 
       const send = (event: string, data: unknown) => {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted || reply.raw.writableEnded) return;
         reply.raw.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
       };
 
@@ -252,8 +254,8 @@ export const streamRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
           send("error", { error: "stream session failed" });
         }
       } finally {
-        request.raw.off("close", onClose);
-        reply.raw.end();
+        reply.raw.off("close", onClose);
+        if (!reply.raw.writableEnded) reply.raw.end();
       }
 
       return reply;
