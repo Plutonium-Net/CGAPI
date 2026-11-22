@@ -90,17 +90,30 @@ bun run start
 
 ## Deployment
 
-### Docker
+### Render (native Bun, no Docker)
 
-```bash
-docker build -t plutonium-cgapi .
-docker run -d --name cgapi -p 3000:3000 \
-  -e CORS_ORIGIN=https://your-frontend.example \
-  -v cgapi-data:/app/data \
-  plutonium-cgapi
+Render runs Bun inside its Node.js runtime, so deploy straight from the repo:
+
+| Setting | Value |
+| --- | --- |
+| Runtime / Language | Node.js |
+| Build Command | `bun install --frozen-lockfile` |
+| Start Command | `bun run start` |
+| Health Check Path | `/health` |
+
+Render only provides Bun when the repo contains a `bun.lock` (this repo does) or `BUN_VERSION` is set, so pin the version with a `BUN_VERSION` env var (or a `.bun-version` file) to keep deploys consistent. Leave `PORT` unset — Render injects it and the app reads it, binding `0.0.0.0`.
+
+Environment:
+
+```
+NODE_ENV=production
+LOG_LEVEL=info
+CORS_ORIGIN=https://your-frontend.example
+DATA_DIR=/app/data
+POOL_SIZE=3
 ```
 
-The image runs as the unprivileged `bun` user, logs JSON to stdout and ships a healthcheck against `/health`.
+Render's filesystem is ephemeral, so attach a persistent disk mounted at `/app/data` on a paid instance to keep the account pool across deploys and restarts. HTTP responses may run up to 100 minutes (the 10-minute queue wait fits), and WebSockets/SSE need no extra configuration.
 
 ### systemd
 
